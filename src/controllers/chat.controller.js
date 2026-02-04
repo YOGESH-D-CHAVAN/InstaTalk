@@ -9,13 +9,28 @@ export const accessChat = async (req, res) => {
     participants: {
       $all: [req.user._id, userId],
     },
-  });
+  }).populate("participants", "-password");
 
   if (!chat) {
     chat = await Chat.create({
       participants: [req.user._id, userId],
     });
+    chat = await chat.populate("participants", "-password");
   }
 
   res.status(200).json(chat);
+};
+
+export const fetchChats = async (req, res) => {
+  try {
+    const chats = await Chat.find({
+      participants: { $elemMatch: { $eq: req.user._id } },
+    })
+      .populate("participants", "-password")
+      .sort({ updatedAt: -1 });
+
+    res.status(200).json(chats);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch chats", error: error.message });
+  }
 };
