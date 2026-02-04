@@ -15,7 +15,7 @@ export default function Login() {
     setError("");
     try {
       await login(form);
-      navigate("/");
+      navigate("/chat");
     } catch (err) {
       console.error(err);
       setError("Invalid email or password");

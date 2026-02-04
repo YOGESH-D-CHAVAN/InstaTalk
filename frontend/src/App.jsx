@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
 import ChatBox from "./components/Chat/ChatBox";
+import LandingPage from "./pages/LandingPage"
 
 import Home from "./pages/Home";
 
@@ -20,10 +21,11 @@ const ProtectedRoute = ({ children }) => {
 function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={ <LandingPage/>} />/
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
-        path="/"
+        path="/chat"
         element={
           <ProtectedRoute>
              <Home />
