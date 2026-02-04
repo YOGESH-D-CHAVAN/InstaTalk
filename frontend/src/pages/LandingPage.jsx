@@ -1,4 +1,4 @@
-// App.jsx
+
 import React, { useState, useEffect } from 'react';
 import { 
   MessageSquare, 
@@ -92,7 +92,6 @@ const LandingPage = () => {
     }
   };
 
-  // Simulate real-time message updates
   useEffect(() => {
     const interval = setInterval(() => {
       if (Math.random() > 0.7) {
