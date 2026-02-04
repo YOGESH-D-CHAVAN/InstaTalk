@@ -43,7 +43,9 @@ export default function ChatBox({ chatId, user }) {
     loadMessages(); // ✅ async-safe
 
     const handleReceiveMessage = (message) => {
-      if (message.chatId === chatId) {
+      // Check both 'chat' (mongoose ref) and 'chatId' (fallback) properties
+      const msgChatId = message.chat || message.chatId;
+      if (msgChatId === chatId) {
         setMessages((prev) => [...prev, message]);
       }
     };
