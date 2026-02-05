@@ -1,25 +1,21 @@
 import { useEffect, useState, useRef } from "react";
-import { io } from "socket.io-client";
 import API from "../../services/api";
 import LinkImg from "../../assets/icons/link.png"
-
-const ENDPOINT = "http://localhost:5000";
+import { useSocket } from "../../context/SocketContext";
 
 export default function ChatBox({ chatId, user }) {
+  const { socket } = useSocket();
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState(null);
+  
   const messagesEndRef = useRef(null);
-  const socketRef = useRef(null);
 
   useEffect(() => {
-    socketRef.current = io(ENDPOINT);
-    return () => socketRef.current.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!chatId || !socketRef.current) return;
-    const socket = socketRef.current;
+    if (!chatId || !socket) return;
+    
     socket.emit("join_chat", chatId);
 
     const loadMessages = async () => {
@@ -43,29 +39,72 @@ export default function ChatBox({ chatId, user }) {
       }
     };
 
+    const handleTyping = ({ chatId: roomChatId, userId }) => {
+        if (roomChatId === chatId && userId !== user._id) {
+            setIsTyping(true);
+            setTypingUser(userId); // You could fetch user name here if needed, or pass it in event
+        }
+    };
+
+    const handleStopTyping = ({ chatId: roomChatId }) => {
+        if (roomChatId === chatId) {
+            setIsTyping(false);
+            setTypingUser(null);
+        }
+    };
+
     socket.on("receive_message", handleReceiveMessage);
+    socket.on("typing", handleTyping);
+    socket.on("stop_typing", handleStopTyping);
+
     return () => {
       socket.off("receive_message", handleReceiveMessage);
-      socket.emit("leave_chat", chatId);
+      socket.off("typing", handleTyping);
+      socket.off("stop_typing", handleStopTyping);
+      // Don't leave chat on unmount if we want to keep receiving notifications, 
+      // but for now let's keep it simple or remove leave_chat if not needed by server logic
+      // socket.emit("leave_chat", chatId); 
     };
-  }, [chatId]);
+  }, [chatId, socket, user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]); // Scroll when typing starts too
 
   const sendMessage = async (e) => {
     if ((e.type === "click" || e.key === "Enter") && newMsg.trim()) {
       try {
+        socket.emit("stop_typing", { chatId, userId: user._id });
         const msg = newMsg;
         setNewMsg("");
         const { data } = await API.post("/message", { chatId, content: msg });
-        socketRef.current.emit("send_message", { chatId, message: data });
+        socket.emit("send_message", { chatId, message: data });
         setMessages((prev) => [...prev, data]);
       } catch (err) {
         console.error("Failed to send message", err);
       }
     }
+  };
+
+  const typingHandler = (e) => {
+    setNewMsg(e.target.value);
+
+    if (!socket) return;
+    
+    if (!isTyping) {
+        // We handle "self typing" logic purely by emitting, frontend doesn't need to know self is typing
+        socket.emit("typing", { chatId, userId: user._id });
+    }
+
+    // Debounce stop typing
+    let lastTypingTime = new Date().getTime();
+    setTimeout(() => {
+        var timeNow = new Date().getTime();
+        var timeDiff = timeNow - lastTypingTime;
+        if (timeDiff >= 3000 && newMsg) { // 3 seconds
+             socket.emit("stop_typing", { chatId, userId: user._id });
+        }
+    }, 3000);
   };
 
   if (loading) {
@@ -109,19 +148,30 @@ export default function ChatBox({ chatId, user }) {
             </div>
           );
         })}
+        {isTyping && (
+             <div className="flex w-full justify-start items-end gap-3">
+                 <div className="w-8 h-8 flex items-center justify-center">
+                    <div className="loading-dots flex gap-1">
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                    </div>
+                 </div>
+             </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
       <div className="p-3 md:p-4 bg-white border-t border-gray-200 flex items-center gap-2 md:gap-4">
         <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img src={LinkImg} alt="link" className="w-5 h-5 opacity-60" />
+          {/* <img src={LinkImg} alt="link" className="w-5 h-5 opacity-60" />  */}
         </button>
         
         <div className="flex-1 relative">
           <input
             value={newMsg}
-            onChange={(e) => setNewMsg(e.target.value)}
+            onChange={typingHandler}
             onKeyDown={(e) => e.key === "Enter" && sendMessage(e)}
             className="w-full bg-gray-100 border-none text-gray-900 px-5 py-3 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400"
             placeholder="Type your message..."

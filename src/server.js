@@ -4,7 +4,6 @@ import app from "./app.js";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
-
 dotenv.config();
 
 connectDB();
@@ -18,8 +17,19 @@ const io = new Server(server, {
   },
 });
 
+const onlineUsers = new Map(); // userId -> socketId
+
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);
+
+  socket.on("setup", (userData) => {
+    if (userData?._id) {
+      socket.join(userData._id);
+      onlineUsers.set(userData._id, socket.id);
+      console.log(`User ${userData._id} connected`);
+      io.emit("online_users", Array.from(onlineUsers.keys()));
+    }
+  });
 
   socket.on("join_chat", (chatId) => {
     socket.join(chatId);
@@ -30,8 +40,24 @@ io.on("connection", (socket) => {
     socket.to(chatId).emit("receive_message", message);
   });
 
+  socket.on("typing", ({ chatId, userId }) => {
+    socket.to(chatId).emit("typing", { chatId, userId });
+  });
+
+  socket.on("stop_typing", ({ chatId, userId }) => {
+    socket.to(chatId).emit("stop_typing", { chatId, userId });
+  });
+
   socket.on("disconnect", () => {
     console.log("🔴 User disconnected:", socket.id);
+    // Find key (userId) by value (socket.id)
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId);
+        io.emit("online_users", Array.from(onlineUsers.keys()));
+        break;
+      }
+    }
   });
 });
 
