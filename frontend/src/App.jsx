@@ -36,12 +36,16 @@ function AppRoutes() {
   );
 }
 
+import { SocketProvider } from "./context/SocketContext";
+
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
+      <SocketProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </SocketProvider>
     </AuthProvider>
   );
 }

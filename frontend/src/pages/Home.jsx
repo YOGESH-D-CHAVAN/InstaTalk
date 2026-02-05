@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../context/SocketContext";
 import ChatBox from "../components/Chat/ChatBox";
+import ProfileModal from "../components/ProfileModal";
 
 export default function Home() {
   const { user, logout } = useAuth();
+  const { onlineUsers } = useSocket();
   const [users, setUsers] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [chats, setChats] = useState([]);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     fetchChats();
@@ -51,13 +55,14 @@ export default function Home() {
 
   return (
     <div className="flex h-screen bg-white text-gray-900 overflow-hidden font-sans">
+      {showProfile && <ProfileModal user={user} onClose={() => setShowProfile(false)} />}
       
       {/* Sidebar: Responsive width (Full on mobile if no chat selected, 1/3 on desktop) */}
       <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} w-full md:w-1/3 max-w-sm border-r border-gray-100 flex-col bg-white shadow-sm`}>
         
         {/* Header */}
         <div className="p-4 md:p-6 border-b border-gray-50 flex justify-between items-center">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setShowProfile(true)}>
              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-blue-200">
                 {user?.username?.[0]?.toUpperCase()}
              </div>
@@ -68,12 +73,20 @@ export default function Home() {
                 </span>
              </div>
           </div>
-          <button
-            onClick={logout}
-            className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider"
-          >
-            Logout
-          </button>
+          <div className="flex gap-2">
+            <button
+                onClick={() => setShowProfile(true)}
+                className="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors uppercase tracking-wider"
+            >
+                Profile
+            </button>
+            <button
+                onClick={logout}
+                className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider px-2"
+            >
+                Logout
+            </button>
+          </div>
         </div>
         
         {/* Search */}
@@ -92,25 +105,31 @@ export default function Home() {
         {/* List Area */}
         <div className="flex-1 overflow-y-auto space-y-1 p-3">
           {searchTerm ? (
-            users.map((u) => (
+            users.map((u) => {
+              const isOnline = onlineUsers.includes(u._id);
+              return (
               <div
                 key={u._id}
                 onClick={() => createChat(u._id)}
                 className="p-3 flex items-center gap-3 cursor-pointer rounded-2xl hover:bg-blue-50 transition-all border border-transparent hover:border-blue-100"
               >
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center font-semibold text-gray-600">
-                  {u.username[0].toUpperCase()}
+                <div className="relative">
+                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center font-semibold text-gray-600">
+                      {u.username[0].toUpperCase()}
+                    </div>
+                    {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>}
                 </div>
                 <div>
                     <p className="font-bold text-sm text-gray-800">{u.username}</p>
                     <p className="text-xs text-gray-400 truncate">{u.email}</p>
                 </div>
               </div>
-            ))
+            )})
           ) : (
             chats.map((chat) => {
                const otherUser = chat.participants.find(p => p._id !== user._id) || chat.participants[0];
                const isSelected = selectedChat?._id === chat._id;
+               const isOnline = onlineUsers.includes(otherUser?._id);
                
                return (
                 <div
@@ -122,18 +141,21 @@ export default function Home() {
                       : "hover:bg-gray-50 border-transparent"
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center font-bold text-blue-600 border border-gray-100 shadow-sm overflow-hidden">
-                     {otherUser?.avatar ? (
-                        <img src={otherUser.avatar} alt="avatar" className="w-full h-full object-cover" />
-                     ) : (
-                        <span>{otherUser?.username?.[0]?.toUpperCase()}</span>
-                     )}
+                  <div className="relative">
+                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center font-bold text-blue-600 border border-gray-100 shadow-sm overflow-hidden">
+                         {otherUser?.avatar ? (
+                            <img src={otherUser.avatar} alt="avatar" className="w-full h-full object-cover" />
+                         ) : (
+                            <span>{otherUser?.username?.[0]?.toUpperCase()}</span>
+                         )}
+                      </div>
+                      {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full shadow-sm"></span>}
                   </div>
                   <div className="flex-1 min-w-0">
                       <p className={`font-bold text-sm ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
                         {otherUser?.username}
                       </p>
-                      <p className="text-xs text-gray-400 truncate">Click to message</p>
+                      <p className="text-xs text-gray-400 truncate">{isOnline ? 'Online' : 'Click to message'}</p>
                   </div>
                 </div>
                );
