@@ -23,45 +23,61 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-gray-100">
-      <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
-        <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Welcome Back</h2>
+    // Responsive container: padding added for mobile screens (p-4)
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900 p-4">
+      {/* Card: max-width handles desktop, w-full handles mobile */}
+      <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
+        <h2 className="text-3xl font-extrabold text-center mb-2 text-gray-800">
+          Welcome Back
+        </h2>
+        <p className="text-center text-gray-500 mb-8">Please enter your details</p>
         
-        {error && <div className="bg-red-500/20 text-red-200 p-3 rounded-lg mb-4 text-center text-sm">{error}</div>}
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-6 text-center text-sm font-medium border border-red-100">
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">
+              Email Address
+            </label>
             <input 
                 name="email" 
                 type="email" 
                 required
-                className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500"
-                placeholder="u@example.com" 
+                className="w-full bg-white border border-gray-300 text-gray-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400 shadow-sm"
+                placeholder="name@company.com" 
                 onChange={handleChange} 
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Password</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">
+              Password
+            </label>
             <input 
                 name="password" 
                 type="password" 
                 required
-                className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500"
+                className="w-full bg-white border border-gray-300 text-gray-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400 shadow-sm"
                 placeholder="••••••••" 
                 onChange={handleChange} 
             />
           </div>
-          <button 
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
-          >
-            Log In
-          </button>
+
+          <div className="pt-2">
+            <button 
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+            >
+              Sign In
+            </button>
+          </div>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-400">
-            Don't have an account? <Link to="/register" className="text-blue-400 hover:text-blue-300 transition-colors">Sign up</Link>
+        <p className="mt-8 text-center text-sm text-gray-600">
+            Don't have an account? <Link to="/register" className="text-blue-600 font-semibold hover:underline underline-offset-4">Create one</Link>
         </p>
       </div>
     </div>
