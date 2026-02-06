@@ -9,7 +9,6 @@ import {
   Globe,
   CheckCircle,
   ArrowRight,
-  ArrowRight,
   Star,
   Menu,
   X
