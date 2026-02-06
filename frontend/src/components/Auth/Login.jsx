@@ -23,9 +23,7 @@ export default function Login() {
   };
 
   return (
-    // Responsive container: padding added for mobile screens (p-4)
     <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900 p-4">
-      {/* Card: max-width handles desktop, w-full handles mobile */}
       <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
         <h2 className="text-3xl font-extrabold text-center mb-2 text-gray-800">
           Welcome Back
