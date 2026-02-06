@@ -40,7 +40,7 @@ const ProfileModal = ({ user, onClose }) => {
                             </div>
                             <div>
                                 <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">User ID</p>
-                                <p className="text-sm font-semibold text-gray-700 font-mono truncate max-w-[200px]">{user._id}</p>
+                                <p className="text-sm font-semibold text-gray-700 font-mono truncate max-w-[200px]">{user._id || user.id}</p>
                             </div>
                         </div>
                         

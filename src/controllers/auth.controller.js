@@ -47,6 +47,9 @@ export const registerUser = async (req, res) => {
       },
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "User already exists (duplicate key)" });
+    }
     res.status(500).json({
       message: "Registration failed",
       error: error.message,

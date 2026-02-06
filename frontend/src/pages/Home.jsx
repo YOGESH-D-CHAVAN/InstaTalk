@@ -127,7 +127,8 @@ export default function Home() {
             )})
           ) : (
             chats.map((chat) => {
-               const otherUser = chat.participants.find(p => p._id !== user._id) || chat.participants[0];
+               const currentUserId = user?._id || user?.id;
+               const otherUser = chat.participants.find(p => String(p._id) !== String(currentUserId)) || chat.participants[0];
                const isSelected = selectedChat?._id === chat._id;
                const isOnline = onlineUsers.includes(otherUser?._id);
                

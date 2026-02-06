@@ -1,24 +1,28 @@
 import Chat from "../models/chat.model.js";
 
 export const accessChat = async (req, res) => {
-  const { userId } = req.body;
+  try {
+    const { userId } = req.body;
 
-  // check existing chat
-  let chat = await Chat.findOne({
-    isGroupChat: false,
-    participants: {
-      $all: [req.user._id, userId],
-    },
-  }).populate("participants", "-password");
+    // check existing chat
+    let chat = await Chat.findOne({
+      isGroupChat: false,
+      participants: {
+        $all: [req.user._id, userId],
+      },
+    }).populate("participants", "-password");
 
-  if (!chat) {
-    chat = await Chat.create({
-      participants: [req.user._id, userId],
-    });
-    chat = await chat.populate("participants", "-password");
+    if (!chat) {
+      chat = await Chat.create({
+        participants: [req.user._id, userId],
+      });
+      chat = await chat.populate("participants", "-password");
+    }
+
+    res.status(200).json(chat);
+  } catch (error) {
+    res.status(500).json({ message: "Error accessing chat", error: error.message });
   }
-
-  res.status(200).json(chat);
 };
 
 export const fetchChats = async (req, res) => {
