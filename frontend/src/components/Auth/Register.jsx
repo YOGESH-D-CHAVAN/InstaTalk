@@ -23,9 +23,7 @@ export default function Register() {
   };
 
   return (
-    // Responsive outer container with light background
     <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900 p-4">
-      {/* Responsive card: scales from mobile to max-w-md on desktop */}
       <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
         <h2 className="text-3xl font-extrabold text-center mb-2 text-gray-800">
           Create Account
