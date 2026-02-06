@@ -9,11 +9,15 @@ import {
   Globe,
   CheckCircle,
   ArrowRight,
-  Star
+  ArrowRight,
+  Star,
+  Menu,
+  X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [messages, setMessages] = useState([
     { id: 1, user: "Alex", text: "Hey team! Ready for the meeting?", time: "10:00 AM", isUser: false },
     { id: 2, user: "You", text: "Yes, I've prepared the presentation", time: "10:01 AM", isUser: true },
@@ -119,26 +123,88 @@ const LandingPage = () => {
               <MessageSquare className="h-8 w-8 text-indigo-600" />
               <span className="ml-2 text-2xl font-bold text-gray-900">ChatSphere</span>
             </div>
+            
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-gray-700 hover:text-indigo-600 font-medium">Features</a>
               <a href="#testimonials" className="text-gray-700 hover:text-indigo-600 font-medium">Testimonials</a>
               <a href="#pricing" className="text-gray-700 hover:text-indigo-600 font-medium">Pricing</a>
             </div>
-            <div className="flex items-center space-x-4">
+            
+            <div className="hidden md:flex items-center space-x-4">
              <Link to={"/login"}>
               <button className="hidden md:inline-flex items-center px-4 py-2 text-gray-700 font-medium rounded-lg hover:bg-gray-100">
                 Sign In
               </button>
              </Link>
-           <Link to={"/register"}>
+             <Link to={"/register"}>
               <button className="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors">
                 Get Started Free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </button>
-           </Link>
+             </Link>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-gray-700 hover:text-indigo-600 p-2"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+            <div className="px-4 pt-2 pb-6 space-y-2">
+              <a 
+                href="#features" 
+                className="block px-3 py-3 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Features
+              </a>
+              <a 
+                href="#testimonials" 
+                className="block px-3 py-3 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Testimonials
+              </a>
+              <a 
+                href="#pricing" 
+                className="block px-3 py-3 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Pricing
+              </a>
+              <div className="border-t border-gray-100 my-2 pt-2 space-y-2">
+                <Link 
+                  to="/login" 
+                  className="block w-full text-left px-3 py-3 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/register"
+                  className="block w-full text-center px-5 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                   Get Started Free
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}

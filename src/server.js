@@ -17,7 +17,7 @@ const io = new Server(server, {
   },
 });
 
-const onlineUsers = new Map(); // userId -> socketId
+const onlineUsers = new Map(); 
 
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);

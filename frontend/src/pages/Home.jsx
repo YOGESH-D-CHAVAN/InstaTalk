@@ -168,16 +168,53 @@ export default function Home() {
       {/* Main Chat Area: Hidden on mobile unless chat is selected */}
       <div className={`${!selectedChat ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-gray-50 relative`}>
         {selectedChat ? (
-          <>
-            {/* Back button for mobile */}
-            <button 
-              onClick={() => setSelectedChat(null)}
-              className="md:hidden absolute top-4 left-4 z-10 p-2 bg-white rounded-full shadow-md"
-            >
-              ←
-            </button>
-            <ChatBox chatId={selectedChat._id} user={user} key={selectedChat._id} />
-          </>
+          (() => {
+            const currentUserId = user?._id || user?.id;
+            const otherUser = selectedChat.participants.find(p => String(p._id) !== String(currentUserId)) || selectedChat.participants[0];
+            const isOnline = onlineUsers.includes(otherUser?._id);
+
+            return (
+              <>
+                {/* Chat Header */}
+                <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+                    <div className="flex items-center gap-3">
+                        <button 
+                          onClick={() => setSelectedChat(null)}
+                          className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors -ml-2"
+                        >
+                          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        
+                        <div className="relative">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600 border border-blue-200 overflow-hidden">
+                                {otherUser?.avatar ? (
+                                     <img src={otherUser.avatar} alt="avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                     <span>{otherUser?.username?.[0]?.toUpperCase()}</span>
+                                )}
+                            </div>
+                            {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>}
+                        </div>
+                        
+                        <div className="flex flex-col">
+                            <h3 className="font-bold text-gray-900 leading-tight text-sm md:text-base">{otherUser?.username}</h3>
+                            <p className="text-xs text-gray-500 font-medium">{isOnline ? 'Online' : 'Offline'}</p>
+                        </div>
+                    </div>
+                    
+                     <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div className="flex-1 overflow-hidden relative">
+                   <ChatBox chatId={selectedChat._id} user={user} key={selectedChat._id} />
+                </div>
+              </>
+            );
+          })()
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-gray-400 px-6 text-center">
              <div className="w-20 h-20 bg-white shadow-xl shadow-gray-200/50 rounded-3xl flex items-center justify-center mb-6 rotate-12">
