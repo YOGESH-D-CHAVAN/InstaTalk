@@ -17,8 +17,19 @@ export const SocketProvider = ({ children }) => {
 
     useEffect(() => {
         if (user) {
-            const socketIo = io(ENDPOINT);
+            const socketIo = io(ENDPOINT, {
+                reconnection: true,
+                timeout: 10000,
+            });
             setSocket(socketIo);
+
+            socketIo.on("connect", () => {
+                console.log("Connected to socket:", socketIo.id);
+            });
+
+            socketIo.on("connect_error", (err) => {
+                console.error("Socket Connection Error:", err.message);
+            });
 
             socketIo.emit("setup", user);
 

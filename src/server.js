@@ -10,9 +10,30 @@ connectDB();
 
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://instatalk-tyq7.onrender.com",
+];
+
+if (process.env.FRONTEND_URL) {
+  // Support comma-separated URLs in env var
+  const envOrigins = process.env.FRONTEND_URL.split(',').map(url => url.trim());
+  allowedOrigins.push(...envOrigins);
+}
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, "http://localhost:5173"] : ["http://localhost:5173", "https://instatalk-tyq7.onrender.com"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("Blocked by CORS:", origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   },
 });
@@ -63,4 +84,5 @@ io.on("connection", (socket) => {
 
 server.listen(process.env.PORT, () => {
   console.log(`🚀 Server running on port ${process.env.PORT}`);
+  console.log(`🔧 CORS Allowed Origins:`, allowedOrigins);
 });
