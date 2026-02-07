@@ -97,7 +97,7 @@ export default function ChatBox({ chatId, user }) {
     setTimeout(() => {
         var timeNow = new Date().getTime();
         var timeDiff = timeNow - lastTypingTime;
-        if (timeDiff >= 3000 && newMsg) { // 3 seconds
+        if (timeDiff >= 3000 && newMsg) { 
              socket.emit("stop_typing", { chatId, userId: user._id });
         }
     }, 3000);
