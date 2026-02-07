@@ -92,7 +92,7 @@ export default function ChatBox({ chatId, user }) {
         socket.emit("typing", { chatId, userId: user._id });
     }
 
-    // Debounce stop typing
+
     let lastTypingTime = new Date().getTime();
     setTimeout(() => {
         var timeNow = new Date().getTime();
