@@ -1,7 +1,10 @@
 import axios from "axios";
 
+const BASE_URL = import.meta.env.VITE_API_URL || 
+  (window.location.hostname === "localhost" ? "http://localhost:5000/api" : "https://instatalk-tyq7.onrender.com/api");
+
 const API = axios.create({
-  baseURL: "https://instatalk-tyq7.onrender.com/api",
+  baseURL: BASE_URL,
 });
 
 export const setToken = (token) => {

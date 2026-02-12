@@ -3,17 +3,20 @@ import Chat from "../models/chat.model.js";
 
 export const sendMessage = async (req, res) => {
   try {
-    const { content, chatId } = req.body;
+    const { content, chatId, attachments } = req.body;
 
-    if (!content || !chatId) {
+    if ((!content && (!attachments || attachments.length === 0)) || !chatId) {
       return res.status(400).json({ message: "Invalid data" });
     }
 
-    const message = await Message.create({
+    let message = await Message.create({
       sender: req.user._id,
       content,
+      attachments,
       chat: chatId,
     });
+
+    message = await message.populate("sender", "username avatar");
 
     await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() });
 

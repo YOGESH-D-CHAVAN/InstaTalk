@@ -13,6 +13,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+import uploadRoutes from "./routes/upload.routes.js";
+
 // routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
