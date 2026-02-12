@@ -13,11 +13,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+import uploadRoutes from "./routes/upload.routes.js";
+
 // routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
+app.use("/api", uploadRoutes);
+
 
 // test route
 app.get("/", (req, res) => {

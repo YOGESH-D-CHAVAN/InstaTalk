@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import API from "../../services/api";
 import LinkImg from "../../assets/icons/link.png"
 import { useSocket } from "../../context/SocketContext";
+import { Image, FileText, X } from "lucide-react";
 
 export default function ChatBox({ chatId, user }) {
   const { socket } = useSocket();
@@ -12,6 +13,73 @@ export default function ChatBox({ chatId, user }) {
   const [typingUser, setTypingUser] = useState(null);
   
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [attachment, setAttachment] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
+  const uploadFile = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setIsUploading(true);
+      setUploadError("");
+      const { data } = await API.post("/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data;
+    } catch (error) {
+      console.error("Upload failed", error);
+      const errMsg = error.response?.data?.message || error.message || "Failed to upload file";
+      setUploadError(errMsg);
+      setTimeout(() => setUploadError(""), 5000);
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Reset value so same file can be selected again if needed
+    // e.target.value = ""; 
+    // Wait, if I reset here, the onChange might trigger weirdly or I lose reference. 
+    // Actually, it's better to reset after processing.
+
+    const data = await uploadFile(file);
+    if (data) {
+      setAttachment({
+        url: data.url,
+        type: data.type,
+        name: data.name,
+      });
+      setShowAttachMenu(false);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeAttachment = () => {
+    setAttachment(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleAttachmentOption = (type) => {
+    if (!fileInputRef.current) return;
+    
+    if (type === "image") {
+      fileInputRef.current.accept = "image/*,video/*";
+    } else {
+      fileInputRef.current.accept = "*";
+    }
+    
+    fileInputRef.current.click();
+    setShowAttachMenu(false);
+  };
+
 
   useEffect(() => {
     if (!chatId || !socket) return;
@@ -80,12 +148,19 @@ export default function ChatBox({ chatId, user }) {
   }, [messages, isTyping]); // Scroll when typing starts too
 
   const sendMessage = async (e) => {
-    if ((e.type === "click" || e.key === "Enter") && newMsg.trim()) {
+    if ((e.type === "click" || e.key === "Enter") && (newMsg.trim() || attachment)) {
       try {
         socket.emit("stop_typing", { chatId, userId: user._id });
-        const msg = newMsg;
+        const msgContent = newMsg;
+        const msgAttachment = attachment ? [attachment] : [];
+        
         setNewMsg("");
-        const { data } = await API.post("/message", { chatId, content: msg });
+        setAttachment(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+
+        const payload = { chatId, content: msgContent, attachments: msgAttachment };
+        const { data } = await API.post("/message", payload);
+        
         socket.emit("send_message", { chatId, message: data });
         setMessages((prev) => [...prev, data]);
       } catch (err) {
@@ -149,7 +224,24 @@ export default function ChatBox({ chatId, user }) {
                     : "bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none"
                 }`}
               >
-                {m.content}
+                {m.attachments?.length > 0 && (
+                  <div className="mb-2 space-y-2">
+                    {m.attachments.map((att, idx) => (
+                      <div key={idx} className="rounded-lg overflow-hidden">
+                         {att.type?.startsWith("image") ? (
+                           <img src={att.url} alt="attachment" className="max-w-full max-h-60 object-cover" />
+                         ) : att.type?.startsWith("video") ? (
+                           <video src={att.url} controls className="max-w-full max-h-60" />
+                         ) : (
+                           <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gray-100 p-2 rounded text-blue-600 underline">
+                             📎 {att.name || "Attachment"}
+                           </a>
+                         )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {m.content && <p>{m.content}</p>}
               </div>
             </div>
           );
@@ -172,19 +264,74 @@ export default function ChatBox({ chatId, user }) {
         <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
         </button>
         
-        <div className="flex-1 relative">
-          <input
-            value={newMsg}
-            onChange={typingHandler}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage(e)}
-            className="w-full bg-gray-100 border-none text-gray-900 px-5 py-3 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400"
-            placeholder="Type your message..."
-          />
+        <div className="flex-1 relative flex flex-col">
+          {uploadError && (
+             <div className="absolute bottom-full left-0 mb-2 text-xs text-red-500 bg-red-50 px-2 py-1 rounded border border-red-200">
+               {uploadError}
+             </div>
+          )}
+          {attachment && (
+            <div className="absolute bottom-full left-0 mb-2 bg-gray-100 p-2 rounded-lg flex items-center gap-2 shadow-md">
+               <span className="text-xs text-gray-600 truncate max-w-[150px]">{attachment.name}</span>
+               <button onClick={removeAttachment} className="text-red-500 hover:text-red-700">✕</button>
+            </div>
+          )}
+          <div className="relative">
+             {/* Attachment Menu */}
+             {showAttachMenu && (
+                <div className="absolute bottom-16 left-0 bg-white shadow-xl rounded-xl p-4 flex flex-col gap-4 min-w-[180px] z-50 border border-gray-100 animate-in fade-in slide-in-from-bottom-5 duration-200">
+                  <button 
+                    onClick={() => handleAttachmentOption("image")}
+                    className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors text-gray-700"
+                  >
+                    <div className="p-2 bg-purple-100 rounded-full text-purple-600">
+                      <Image size={20} />
+                    </div>
+                    <span className="font-medium text-sm">Photos & Videos</span>
+                  </button>
+                  <button 
+                    onClick={() => handleAttachmentOption("file")}
+                    className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors text-gray-700"
+                  >
+                    <div className="p-2 bg-indigo-100 rounded-full text-indigo-600">
+                      <FileText size={20} />
+                    </div>
+                    <span className="font-medium text-sm">Document</span>
+                  </button>
+                </div>
+             )}
+             
+             {/* Link Icon Overlay if menu is open to close it? Or just toggle */}
+             {showAttachMenu && (
+               <div className="fixed inset-0 z-40" onClick={() => setShowAttachMenu(false)}></div>
+             )}
+
+             <img 
+               src={LinkImg} 
+               alt="" 
+               className={`absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer w-5 h-5 transition-all ${showAttachMenu ? "opacity-100 rotate-45" : "opacity-60 hover:opacity-100"}`}
+               onClick={() => setShowAttachMenu(!showAttachMenu)}
+             />
+             <input 
+               type="file" 
+               ref={fileInputRef} 
+               onChange={handleFileSelect} 
+               className="hidden" 
+             />
+             <input
+               value={newMsg}
+               onChange={typingHandler}
+               onKeyDown={(e) => e.key === "Enter" && sendMessage(e)}
+               className="w-full bg-gray-100 border-none text-gray-900 pl-10 pr-5 py-3 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400"
+               placeholder={isUploading ? "Uploading..." : "Type your message..."}
+               disabled={isUploading}
+             />
+          </div>
         </div>
 
         <button
           onClick={sendMessage}
-          disabled={!newMsg.trim()}
+          disabled={!newMsg.trim() && !attachment || isUploading}
           className="p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl shadow-md transition-all active:scale-95"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
