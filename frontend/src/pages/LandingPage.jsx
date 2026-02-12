@@ -235,12 +235,10 @@ const LandingPage = () => {
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
                 <span>No credit card required</span>
                 <span className="mx-3">•</span>
-                {/* <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> */}
-                {/* <span>14-day free trial</span> */}
+                
               </div>
             </div>
             
-            {/* Chat Demo */}
             <div className="lg:w-1/2 mt-12 lg:mt-0">
               <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md mx-auto border border-gray-200">
                 <div className="flex items-center justify-between mb-6">
@@ -290,7 +288,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section id="features" className="py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -323,7 +320,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
+
       <section id="testimonials" className="py-20 bg-gradient-to-r from-indigo-50 to-purple-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -364,7 +361,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-4xl">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 md:p-12 text-center text-white">
@@ -406,7 +403,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Footer */}
+
       <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
@@ -414,12 +411,7 @@ const LandingPage = () => {
               <MessageSquare className="h-8 w-8 text-white" />
               <span className="ml-2 text-2xl font-bold">InstaChat</span>
             </div>
-            <div className="flex space-x-6 mb-6 md:mb-0">
-              {/* <a href="#" className="hover:text-indigo-300 transition-colors">Privacy</a>
-              <a href="#" className="hover:text-indigo-300 transition-colors">Terms</a>
-              <a href="#" className="hover:text-indigo-300 transition-colors">Support</a>
-              <a href="#" className="hover:text-indigo-300 transition-colors">Contact</a> */}
-            </div>
+
             <div className="text-gray-400 text-sm">
               © {new Date().getFullYear()} InstaChat. All rights reserved.
             </div>
