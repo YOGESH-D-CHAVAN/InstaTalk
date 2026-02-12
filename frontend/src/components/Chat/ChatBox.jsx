@@ -126,7 +126,7 @@ export default function ChatBox({ chatId, user }) {
          socket.emit("join_chat", chatId);
     };
 
-    // Join immediately
+ 
     if (socket.connected) handleJoinChat();
 
     // Listeners
@@ -277,7 +277,7 @@ export default function ChatBox({ chatId, user }) {
             </div>
           )}
           <div className="relative">
-             {/* Attachment Menu */}
+   
              {showAttachMenu && (
                 <div className="absolute bottom-16 left-0 bg-white shadow-xl rounded-xl p-4 flex flex-col gap-4 min-w-[180px] z-50 border border-gray-100 animate-in fade-in slide-in-from-bottom-5 duration-200">
                   <button 
@@ -301,7 +301,7 @@ export default function ChatBox({ chatId, user }) {
                 </div>
              )}
              
-             {/* Link Icon Overlay if menu is open to close it? Or just toggle */}
+        
              {showAttachMenu && (
                <div className="fixed inset-0 z-40" onClick={() => setShowAttachMenu(false)}></div>
              )}
