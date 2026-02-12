@@ -57,10 +57,10 @@ export default function Home() {
     <div className="flex h-screen bg-white text-gray-900 overflow-hidden font-sans">
       {showProfile && <ProfileModal user={user} onClose={() => setShowProfile(false)} />}
       
-      {/* Sidebar: Responsive width (Full on mobile if no chat selected, 1/3 on desktop) */}
+
       <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} w-full md:w-1/3 max-w-sm border-r border-gray-100 flex-col bg-white shadow-sm`}>
         
-        {/* Header */}
+   
         <div className="p-4 md:p-6 border-b border-gray-50 flex justify-between items-center">
           <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setShowProfile(true)}>
              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-blue-200">
@@ -89,7 +89,7 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Search */}
+ 
         <div className="p-4">
            <div className="relative">
              <input 
@@ -102,7 +102,7 @@ export default function Home() {
            </div>
         </div>
 
-        {/* List Area */}
+
         <div className="flex-1 overflow-y-auto space-y-1 p-3">
           {searchTerm ? (
             users.map((u) => {
