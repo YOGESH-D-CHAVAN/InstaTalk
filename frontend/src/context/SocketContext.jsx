@@ -13,8 +13,8 @@ export const SocketProvider = ({ children }) => {
     const [onlineUsers, setOnlineUsers] = useState([]);
     const { user } = useAuth();
 
-    // const ENDPOINT = "https://instatalk-tyq7.onrender.com";
-    const ENDPOINT = "http://localhost:5000";
+    const ENDPOINT = "https://instatalk-tyq7.onrender.com";
+    // const ENDPOINT = "http://localhost:5000";
 
     useEffect(() => {
         if (user) {
