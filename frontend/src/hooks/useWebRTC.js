@@ -135,11 +135,17 @@ const useWebRTC = (currentUser) => {
         localVideoRef.current.srcObject = stream;
       }
 
+      console.log("Creating PeerConnection for answer...");
       const pc = createPeerConnection(incomingCallData.from);
       stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
+      console.log("Setting remote description...");
       await pc.setRemoteDescription(new RTCSessionDescription(incomingCallData.signal));
+      
+      console.log("Creating answer...");
       const answer = await pc.createAnswer();
+      
+      console.log("Setting local description...");
       await pc.setLocalDescription(answer);
 
       console.log("Answering call, emitting signal to:", incomingCallData.from);
@@ -156,7 +162,11 @@ const useWebRTC = (currentUser) => {
 
   const createPeerConnection = (targetId) => {
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:global.stun.twilio.com:3478" },
+        { urls: "stun:stun.stunprotocol.org:3478" }
+      ],
     });
 
     pc.onicecandidate = (event) => {
