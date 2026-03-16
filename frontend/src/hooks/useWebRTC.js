@@ -94,6 +94,7 @@ const useWebRTC = (currentUser) => {
               audio: true 
            });
            setCallType("audio"); // Switch to audio mode
+           type = "audio"; // Fix: ensure socket.emit sends the fallback type
         } else {
            throw videoError;
         }
@@ -145,6 +146,7 @@ const useWebRTC = (currentUser) => {
                 video: false, 
                 audio: true 
              });
+             setCallType("audio"); // Fix: ensure UI updates to audio if camera fails
          } else {
              throw videoError;
          }
