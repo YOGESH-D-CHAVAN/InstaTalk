@@ -18,7 +18,18 @@ export const sendMessage = async (req, res) => {
 
     message = await message.populate("sender", "username avatar");
 
-    await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() });
+    const chatUpdate = await Chat.findById(chatId);
+    if (chatUpdate) {
+        // Increment unread count for everyone except the sender
+        chatUpdate.participants.forEach(participant => {
+            if (String(participant) !== String(req.user._id)) {
+                const currentCount = chatUpdate.unreadCounts.get(String(participant)) || 0;
+                chatUpdate.unreadCounts.set(String(participant), currentCount + 1);
+            }
+        });
+        chatUpdate.updatedAt = new Date();
+        await chatUpdate.save();
+    }
 
     res.status(201).json(message);
   } catch (error) {

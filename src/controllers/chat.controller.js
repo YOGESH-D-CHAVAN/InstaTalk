@@ -38,3 +38,19 @@ export const fetchChats = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch chats", error: error.message });
   }
 };
+
+export const markAsRead = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const chat = await Chat.findById(chatId);
+    if (!chat) return res.status(404).json({ message: "Chat not found" });
+
+    // Reset unread count for this user
+    chat.unreadCounts.set(String(req.user._id), 0);
+    await chat.save();
+
+    res.status(200).json({ message: "Chat marked as read", chat });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to mark chat as read", error: error.message });
+  }
+};

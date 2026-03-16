@@ -11,7 +11,7 @@ export default function ChatBox({ chatId, user }) {
   const [loading, setLoading] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsera, setTypingUser] = useState(null);
-  
+
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [attachment, setAttachment] = useState(null);
@@ -69,13 +69,13 @@ export default function ChatBox({ chatId, user }) {
 
   const handleAttachmentOption = (type) => {
     if (!fileInputRef.current) return;
-    
+
     if (type === "image") {
       fileInputRef.current.accept = "image/*,video/*";
     } else {
       fileInputRef.current.accept = "*";
     }
-    
+
     fileInputRef.current.click();
     setShowAttachMenu(false);
   };
@@ -83,7 +83,7 @@ export default function ChatBox({ chatId, user }) {
 
   useEffect(() => {
     if (!chatId || !socket) return;
-    
+
     // socket.emit("join_chat", chatId); // Handled below
 
     const loadMessages = async () => {
@@ -108,25 +108,25 @@ export default function ChatBox({ chatId, user }) {
     };
 
     const handleTyping = ({ chatId: roomChatId, userId }) => {
-        if (roomChatId === chatId && String(userId) !== String(user._id)) {
-            setIsTyping(true);
-            setTypingUser(userId);
-        }
+      if (roomChatId === chatId && String(userId) !== String(user._id)) {
+        setIsTyping(true);
+        setTypingUser(userId);
+      }
     };
 
     const handleStopTyping = ({ chatId: roomChatId }) => {
-        if (roomChatId === chatId) {
-            setIsTyping(false);
-            setTypingUser(null);
-        }
+      if (roomChatId === chatId) {
+        setIsTyping(false);
+        setTypingUser(null);
+      }
     };
 
     const handleJoinChat = () => {
-         // console.log("Joining chat room:", chatId);
-         socket.emit("join_chat", chatId);
+      // console.log("Joining chat room:", chatId);
+      socket.emit("join_chat", chatId);
     };
 
- 
+
     if (socket.connected) handleJoinChat();
 
     // Listeners
@@ -141,7 +141,7 @@ export default function ChatBox({ chatId, user }) {
       socket.off("typing", handleTyping);
       socket.off("stop_typing", handleStopTyping);
     };
-  }, [chatId, socket, user]);
+  }, [chatId, socket, user, onMessageReceived]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -153,14 +153,14 @@ export default function ChatBox({ chatId, user }) {
         socket.emit("stop_typing", { chatId, userId: user._id });
         const msgContent = newMsg;
         const msgAttachment = attachment ? [attachment] : [];
-        
+
         setNewMsg("");
         setAttachment(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
 
         const payload = { chatId, content: msgContent, attachments: msgAttachment };
         const { data } = await API.post("/message", payload);
-        
+
         socket.emit("send_message", { chatId, message: data });
         setMessages((prev) => [...prev, data]);
       } catch (err) {
@@ -173,19 +173,19 @@ export default function ChatBox({ chatId, user }) {
     setNewMsg(e.target.value);
 
     if (!socket) return;
-    
+
     if (!isTyping) {
-        socket.emit("typing", { chatId, userId: user._id });
+      socket.emit("typing", { chatId, userId: user._id });
     }
 
 
     let lastTypingTime = new Date().getTime();
     setTimeout(() => {
-        var timeNow = new Date().getTime();
-        var timeDiff = timeNow - lastTypingTime;
-        if (timeDiff >= 3000 && newMsg) { 
-             socket.emit("stop_typing", { chatId, userId: user._id });
-        }
+      var timeNow = new Date().getTime();
+      var timeDiff = timeNow - lastTypingTime;
+      if (timeDiff >= 3000 && newMsg) {
+        socket.emit("stop_typing", { chatId, userId: user._id });
+      }
     }, 3000);
   };
 
@@ -204,39 +204,38 @@ export default function ChatBox({ chatId, user }) {
           const msgSenderId = typeof m.sender === "object" ? (m.sender._id || m.sender.id) : m.sender;
           const currentUserId = user._id || user.id;
           const isMe = String(msgSenderId) === String(currentUserId);
-          
+
           return (
             <div key={i} className={`flex w-full ${isMe ? "justify-end" : "justify-start items-end gap-3"}`}>
               {!isMe && (
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-xs font-bold text-blue-600 border border-blue-200 overflow-hidden shadow-sm">
                   {m.sender?.avatar ? (
-                     <img src={m.sender.avatar} alt="avatar" className="w-full h-full object-cover" />
+                    <img src={m.sender.avatar} alt="avatar" className="w-full h-full object-cover" />
                   ) : (
-                     <span>{m.sender?.username?.[0]?.toUpperCase() || "?"}</span>
+                    <span>{m.sender?.username?.[0]?.toUpperCase() || "?"}</span>
                   )}
                 </div>
               )}
-              
+
               <div
-                className={`max-w-[85%] md:max-w-[70%] px-4 py-2.5 text-sm transition-all shadow-sm ${
-                  isMe
+                className={`max-w-[85%] md:max-w-[70%] px-4 py-2.5 text-sm transition-all shadow-sm ${isMe
                     ? "bg-blue-600 text-white rounded-2xl rounded-tr-none"
                     : "bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none"
-                }`}
+                  }`}
               >
                 {m.attachments?.length > 0 && (
                   <div className="mb-2 space-y-2">
                     {m.attachments.map((att, idx) => (
                       <div key={idx} className="rounded-lg overflow-hidden">
-                         {att.type?.startsWith("image") ? (
-                           <img src={att.url} alt="attachment" className="max-w-full max-h-60 object-cover" />
-                         ) : att.type?.startsWith("video") ? (
-                           <video src={att.url} controls className="max-w-full max-h-60" />
-                         ) : (
-                           <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gray-100 p-2 rounded text-blue-600 underline">
-                             📎 {att.name || "Attachment"}
-                           </a>
-                         )}
+                        {att.type?.startsWith("image") ? (
+                          <img src={att.url} alt="attachment" className="max-w-full max-h-60 object-cover" />
+                        ) : att.type?.startsWith("video") ? (
+                          <video src={att.url} controls className="max-w-full max-h-60" />
+                        ) : (
+                          <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gray-100 p-2 rounded text-blue-600 underline">
+                            📎 {att.name || "Attachment"}
+                          </a>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -247,15 +246,15 @@ export default function ChatBox({ chatId, user }) {
           );
         })}
         {isTyping && (
-             <div className="flex w-full justify-start items-end gap-3">
-                 <div className="w-8 h-8 flex items-center justify-center">
-                    <div className="loading-dots flex gap-1">
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
-                    </div>
-                 </div>
-             </div>
+          <div className="flex w-full justify-start items-end gap-3">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <div className="loading-dots flex gap-1">
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+              </div>
+            </div>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -263,69 +262,69 @@ export default function ChatBox({ chatId, user }) {
       <div className="p-3 md:p-4 bg-white border-t border-gray-200 flex items-center gap-2 md:gap-4">
         <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
         </button>
-        
+
         <div className="flex-1 relative flex flex-col">
           {uploadError && (
-             <div className="absolute bottom-full left-0 mb-2 text-xs text-red-500 bg-red-50 px-2 py-1 rounded border border-red-200">
-               {uploadError}
-             </div>
+            <div className="absolute bottom-full left-0 mb-2 text-xs text-red-500 bg-red-50 px-2 py-1 rounded border border-red-200">
+              {uploadError}
+            </div>
           )}
           {attachment && (
             <div className="absolute bottom-full left-0 mb-2 bg-gray-100 p-2 rounded-lg flex items-center gap-2 shadow-md">
-               <span className="text-xs text-gray-600 truncate max-w-[150px]">{attachment.name}</span>
-               <button onClick={removeAttachment} className="text-red-500 hover:text-red-700">✕</button>
+              <span className="text-xs text-gray-600 truncate max-w-[150px]">{attachment.name}</span>
+              <button onClick={removeAttachment} className="text-red-500 hover:text-red-700">✕</button>
             </div>
           )}
           <div className="relative">
-   
-             {showAttachMenu && (
-                <div className="absolute bottom-16 left-0 bg-white shadow-xl rounded-xl p-4 flex flex-col gap-4 min-w-[180px] z-50 border border-gray-100 animate-in fade-in slide-in-from-bottom-5 duration-200">
-                  <button 
-                    onClick={() => handleAttachmentOption("image")}
-                    className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors text-gray-700"
-                  >
-                    <div className="p-2 bg-purple-100 rounded-full text-purple-600">
-                      <Image size={20} />
-                    </div>
-                    <span className="font-medium text-sm">Photos & Videos</span>
-                  </button>
-                  <button 
-                    onClick={() => handleAttachmentOption("file")}
-                    className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors text-gray-700"
-                  >
-                    <div className="p-2 bg-indigo-100 rounded-full text-indigo-600">
-                      <FileText size={20} />
-                    </div>
-                    <span className="font-medium text-sm">Document</span>
-                  </button>
-                </div>
-             )}
-             
-        
-             {showAttachMenu && (
-               <div className="fixed inset-0 z-40" onClick={() => setShowAttachMenu(false)}></div>
-             )}
 
-             <img 
-               src={LinkImg} 
-               alt="" 
-               className={`absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer w-5 h-5 transition-all ${showAttachMenu ? "opacity-100 rotate-45" : "opacity-60 hover:opacity-100"}`}
-               onClick={() => setShowAttachMenu(!showAttachMenu)}
-             />
-             <input 
-               type="file" 
-               ref={fileInputRef} 
-               onChange={handleFileSelect} 
-               className="hidden" 
-             />
-             <input
-               value={newMsg}
-               onChange={typingHandler}
-               onKeyDown={(e) => e.key === "Enter" && sendMessage(e)}
-               className="w-full bg-gray-100 border-none text-gray-900 pl-10 pr-5 py-3 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400"
-               placeholder={isUploading ? "Uploading..." : "Type your message..."}
-               disabled={isUploading}
-             />
+            {showAttachMenu && (
+              <div className="absolute bottom-16 left-0 bg-white shadow-xl rounded-xl p-4 flex flex-col gap-4 min-w-[180px] z-50 border border-gray-100 animate-in fade-in slide-in-from-bottom-5 duration-200">
+                <button
+                  onClick={() => handleAttachmentOption("image")}
+                  className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors text-gray-700"
+                >
+                  <div className="p-2 bg-purple-100 rounded-full text-purple-600">
+                    <Image size={20} />
+                  </div>
+                  <span className="font-medium text-sm">Photos & Videos</span>
+                </button>
+                <button
+                  onClick={() => handleAttachmentOption("file")}
+                  className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors text-gray-700"
+                >
+                  <div className="p-2 bg-indigo-100 rounded-full text-indigo-600">
+                    <FileText size={20} />
+                  </div>
+                  <span className="font-medium text-sm">Document</span>
+                </button>
+              </div>
+            )}
+
+
+            {showAttachMenu && (
+              <div className="fixed inset-0 z-40" onClick={() => setShowAttachMenu(false)}></div>
+            )}
+
+            <img
+              src={LinkImg}
+              alt=""
+              className={`absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer w-5 h-5 transition-all ${showAttachMenu ? "opacity-100 rotate-45" : "opacity-60 hover:opacity-100"}`}
+              onClick={() => setShowAttachMenu(!showAttachMenu)}
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <input
+              value={newMsg}
+              onChange={typingHandler}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage(e)}
+              className="w-full bg-gray-100 border-none text-gray-900 pl-10 pr-5 py-3 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400"
+              placeholder={isUploading ? "Uploading..." : "Type your message..."}
+              disabled={isUploading}
+            />
           </div>
         </div>
 

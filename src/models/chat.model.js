@@ -12,6 +12,11 @@ const chatSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    unreadCounts: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
   },
   { timestamps: true }
 );
