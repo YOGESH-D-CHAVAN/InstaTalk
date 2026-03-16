@@ -13,6 +13,7 @@ const useWebRTC = (currentUser) => {
   const pcRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const iceCandidateQueueRef = useRef([]);
 
   useEffect(() => {
     if (!socket) return;
@@ -29,15 +30,34 @@ const useWebRTC = (currentUser) => {
       setRemoteUser({ _id: from, username: callerName, avatar: callerAvatar }); // Set basic info for UI
     });
 
-    socket.on("call_accepted", (signal) => {
+    socket.on("call_accepted", async (signal) => {
       console.log("Call accepted signal received");
       setCallStatus("connected");
-      pcRef.current.setRemoteDescription(new RTCSessionDescription(signal));
+      await pcRef.current.setRemoteDescription(new RTCSessionDescription(signal));
+      
+      // Process any queued incoming ICE candidates
+      while (iceCandidateQueueRef.current.length > 0) {
+        const candidate = iceCandidateQueueRef.current.shift();
+        try {
+            await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+            console.log("Added queued ICE candidate (caller)");
+        } catch (e) {
+            console.error("Error adding queued ICE Candidate", e);
+        }
+      }
     });
 
-    socket.on("ice-candidate", (candidate) => {
-        if (pcRef.current) {
-            pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+    socket.on("ice-candidate", async (candidate) => {
+        if (pcRef.current && pcRef.current.remoteDescription) {
+            try {
+                await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log("Added incoming ICE candidate directly");
+            } catch (e) {
+                console.error("Error adding direct ICE Candidate", e);
+            }
+        } else {
+            console.log("Queueing incoming ICE candidate");
+            iceCandidateQueueRef.current.push(candidate);
         }
     });
 
@@ -148,6 +168,17 @@ const useWebRTC = (currentUser) => {
       console.log("Setting local description...");
       await pc.setLocalDescription(answer);
 
+      // Process queued candidates from the caller
+      while (iceCandidateQueueRef.current.length > 0) {
+        const candidate = iceCandidateQueueRef.current.shift();
+        try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            console.log("Added queued ICE candidate (receiver)");
+        } catch (e) {
+            console.error("Error adding queued ICE Candidate", e);
+        }
+      }
+
       console.log("Answering call, emitting signal to:", incomingCallData.from);
       socket.emit("answer_call", { 
         signal: answer, 
@@ -201,6 +232,7 @@ const useWebRTC = (currentUser) => {
     setRemoteStream(null);
     setCallStatus(null);
     setIncomingCallData(null);
+    iceCandidateQueueRef.current = []; // Clear queue on end
     if (remoteUser && socket) {
          // Notify other party
          socket.emit("end_call", { to: remoteUser._id || incomingCallData?.from });
