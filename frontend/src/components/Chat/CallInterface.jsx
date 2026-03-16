@@ -23,9 +23,11 @@ const CallInterface = ({
     if (callStatus === "connected") {
       if (remoteVideoRef?.current && remoteStream) {
         remoteVideoRef.current.srcObject = remoteStream;
+        remoteVideoRef.current.play().catch(e => console.warn("Remote play failed", e));
       }
       if (localVideoRef?.current && localStream) {
         localVideoRef.current.srcObject = localStream;
+        localVideoRef.current.play().catch(e => console.warn("Local play failed", e));
       }
     }
   }, [callStatus, remoteStream, localStream, remoteVideoRef, localVideoRef]);
