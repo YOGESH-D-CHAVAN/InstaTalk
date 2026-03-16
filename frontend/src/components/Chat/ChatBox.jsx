@@ -4,7 +4,7 @@ import LinkImg from "../../assets/icons/link.png"
 import { useSocket } from "../../context/SocketContext";
 import { Image, FileText, X } from "lucide-react";
 
-export default function ChatBox({ chatId, user }) {
+export default function ChatBox({ chatId, user, onMessageReceived }) {
   const { socket } = useSocket();
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState("");
@@ -105,6 +105,9 @@ export default function ChatBox({ chatId, user }) {
       if (msgChatId === chatId) {
         setMessages((prev) => [...prev, message]);
       }
+      if (onMessageReceived) {
+        onMessageReceived(message);
+      }
     };
 
     const handleTyping = ({ chatId: roomChatId, userId }) => {
@@ -163,6 +166,9 @@ export default function ChatBox({ chatId, user }) {
 
         socket.emit("send_message", { chatId, message: data });
         setMessages((prev) => [...prev, data]);
+        if (onMessageReceived) {
+          onMessageReceived(data);
+        }
       } catch (err) {
         console.error("Failed to send message", err);
       }
