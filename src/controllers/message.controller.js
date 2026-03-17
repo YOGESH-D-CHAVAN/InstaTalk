@@ -41,6 +41,12 @@ export const getMessages = async (req, res) => {
 export const deleteMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
+    
+    // Validate messageId format
+    if (!messageId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid message ID format" });
+    }
+
     const message = await Message.findById(messageId);
 
     if (!message) {

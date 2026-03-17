@@ -9,6 +9,9 @@ import { protect } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
+// test route
+router.get("/test", (req, res) => res.send("Message routes are active 📩"));
+
 // send message
 router.post("/", protect, sendMessage);
 
