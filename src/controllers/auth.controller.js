@@ -21,10 +21,12 @@ export const registerUser = async (req, res) => {
     });
 
     if (existingUser) {
+      console.log(`Registration attempt: User already exists for ${email} or ${username}`);
       return res.status(409).json({
         message: "User already exists",
       });
     }
+
 
     // 3. Hash password
     const salt = await bcrypt.genSalt(10);
@@ -46,6 +48,8 @@ export const registerUser = async (req, res) => {
         email: user.email,
       },
     });
+    console.log(`Registration success: User created with email ${email}`);
+
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({ message: "User already exists (duplicate key)" });
@@ -75,19 +79,23 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
+      console.log(`Login attempt: User not found for email ${email}`);
       return res.status(401).json({
         message: "Invalid credentials",
       });
     }
+
 
     // 3. Compare password
     const isPasswordMatch = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatch) {
+      console.log(`Login attempt: Password mismatch for email ${email}`);
       return res.status(401).json({
         message: "Invalid credentials",
       });
     }
+
 
     // 4. Generate JWT
     const token = jwt.sign(
