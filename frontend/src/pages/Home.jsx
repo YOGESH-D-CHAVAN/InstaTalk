@@ -82,10 +82,10 @@ export default function Home() {
         await API.delete(`/message/clear/${selectedChat._id}`);
         // Emit socket event for real-time update
         socket.emit("clear_chat", selectedChat._id);
-        // This will trigger a reload of messages in ChatBox if we pass a key or a trigger
-        // For now, let's just reload the selected chat or simple key change
-        setSelectedChat({ ...selectedChat }); 
+        // Force ChatBox to refresh by updating selectedChat with a timestamp
+        setSelectedChat({ ...selectedChat, lastCleared: Date.now() }); 
         setShowMenu(false);
+
       } catch (error) {
         console.error("Error clearing chat:", error);
       }
@@ -350,8 +350,13 @@ export default function Home() {
                 </div>
 
                 <div className="flex-1 overflow-hidden relative">
-                  <ChatBox chatId={selectedChat._id} user={user} key={selectedChat._id} />
+                  <ChatBox 
+                    chatId={selectedChat._id} 
+                    user={user} 
+                    key={`${selectedChat._id}-${selectedChat.lastCleared || 0}`} 
+                  />
                 </div>
+
               </>
             );
           })()
