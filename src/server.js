@@ -13,6 +13,7 @@ const allowedOrigins = [
   "https://instatalk-tyq7.onrender.com",
   "https://instachat-ygh.netlify.app",
   "https://instatalk.netlify.app",
+  "https://vajrachat.netlify.app",
 ];
 
 if (process.env.FRONTEND_URL) {

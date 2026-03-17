@@ -65,14 +65,14 @@ const LandingPage = () => {
       name: "Yogesh Chavan",
       role: "Product Manager",
       company: "TechFlow Inc.",
-      content: "InstaChat transformed our team communication. The real-time features are incredible!",
+      content: "Vajra Chat transformed our team communication. The real-time features are incredible!",
       rating: 5
     },
     {
       name: "Ganesh Wakchaure",
       role: "Community Manager",
       company: "StartupGrid",
-      content: "Our community engagement increased by 70% after switching to InstaChat.",
+      content: "Our community engagement increased by 70% after switching to Vajra Chat.",
       rating: 5
     },
     {
@@ -123,7 +123,7 @@ const LandingPage = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <MessageSquare className="h-8 w-8 text-indigo-600" />
-              <span className="ml-2 text-2xl font-bold text-gray-900">InstaChat</span>
+              <span className="ml-2 text-2xl font-bold text-gray-900">Vajra Chat</span>
             </div>
             
             {/* Desktop Navigation */}
@@ -389,7 +389,7 @@ const LandingPage = () => {
                 "I build tools that make communication feel <span className="text-indigo-400">effortless</span> and <span className="text-purple-400">natural</span>."
               </h2>
               <p className="text-gray-400 text-lg mb-10 leading-relaxed">
-                As a developer passionate about real-time systems, I created InstaChat to bridge the gap between complex technology and simple, beautiful user experiences.
+                As a developer passionate about real-time systems, I created Vajra Chat to bridge the gap between complex technology and simple, beautiful user experiences.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a 
@@ -437,7 +437,7 @@ const LandingPage = () => {
               Ready to Transform Your Communication?
             </h2>
             <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-              Join thousands of teams who trust InstaChat for their real-time communication needs.
+              Join thousands of teams who trust Vajra Chat for their real-time communication needs.
             </p>
             
             <div className="max-w-md mx-auto">
@@ -477,11 +477,11 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-6 md:mb-0">
               <MessageSquare className="h-8 w-8 text-white" />
-              <span className="ml-2 text-2xl font-bold">InstaChat</span>
+              <span className="ml-2 text-2xl font-bold">Vajra Chat</span>
             </div>
 
             <div className="text-gray-400 text-sm">
-              © {new Date().getFullYear()} InstaChat. All rights reserved.
+              © {new Date().getFullYear()} Vajra Chat. All rights reserved.
             </div>
           </div>
         </div>
