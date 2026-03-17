@@ -1,12 +1,15 @@
 import React, { useState, useRef } from 'react';
 import API from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Camera, Loader2 } from 'lucide-react';
 
-const ProfileModal = ({ user, onClose }) => {
+const ProfileModal = ({ user: initialUser, onClose }) => {
+    const { setUser } = useAuth();
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef(null);
 
-    if (!user) return null;
+    if (!initialUser) return null;
+    const user = initialUser;
 
     const handleAvatarClick = () => {
         if (fileInputRef.current) fileInputRef.current.click();
@@ -27,10 +30,13 @@ const ProfileModal = ({ user, onClose }) => {
             });
 
             // 2. Update user profile
-            await API.patch("/user/profile", { avatar: uploadData.url });
+            const { data: updatedUser } = await API.patch("/user/profile", { avatar: uploadData.url });
             
-            // Reload page or update context (simple reload for now)
-            window.location.reload(); 
+            // Update context state directly
+            setUser(updatedUser);
+            
+            // Remove hard reload
+            // window.location.reload(); 
         } catch (error) {
             console.error("Profile update failed", error);
             alert("Failed to update profile picture");

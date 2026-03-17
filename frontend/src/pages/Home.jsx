@@ -80,6 +80,8 @@ export default function Home() {
     if (window.confirm("Are you sure you want to clear this chat? This will delete all messages.")) {
       try {
         await API.delete(`/message/clear/${selectedChat._id}`);
+        // Emit socket event for real-time update
+        socket.emit("clear_chat", selectedChat._id);
         // This will trigger a reload of messages in ChatBox if we pass a key or a trigger
         // For now, let's just reload the selected chat or simple key change
         setSelectedChat({ ...selectedChat }); 
@@ -156,8 +158,12 @@ export default function Home() {
 
         <div className="p-4 md:p-6 border-b border-gray-50 flex justify-between items-center">
           <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setShowProfile(true)}>
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-blue-200">
-              {user?.username?.[0]?.toUpperCase()}
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-blue-200 overflow-hidden">
+              {user?.avatar ? (
+                <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                user?.username?.[0]?.toUpperCase()
+              )}
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight text-gray-800 leading-tight">{user?.username}</h1>

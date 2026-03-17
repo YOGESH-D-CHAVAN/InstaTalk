@@ -71,7 +71,12 @@ io.on("connection", (socket) => {
     socket.to(chatId).emit("stop_typing", { chatId, userId });
   });
 
+  socket.on("clear_chat", (chatId) => {
+    socket.to(chatId).emit("chat_cleared", { chatId });
+  });
+
   // WebRTC Signaling
+
   socket.on("call_user", ({ userToCall, signalData, from, name, avatar, callType }) => {
     console.log("Call initiated:", { from, to: userToCall, name, callType });
     io.to(userToCall).emit("call_user", { signal: signalData, from, name, avatar, callType });

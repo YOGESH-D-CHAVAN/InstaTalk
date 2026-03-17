@@ -137,12 +137,19 @@ export default function ChatBox({ chatId, user }) {
     socket.on("message_deleted", ({ messageId }) => {
       setMessages((prev) => prev.filter((m) => m._id !== messageId));
     });
+    socket.on("chat_cleared", ({ chatId: clearedChatId }) => {
+      if (clearedChatId === chatId) {
+        setMessages([]);
+      }
+    });
 
     return () => {
       socket.off("connect", handleJoinChat);
       socket.off("receive_message", handleReceiveMessage);
       socket.off("typing", handleTyping);
       socket.off("stop_typing", handleStopTyping);
+      socket.off("message_deleted");
+      socket.off("chat_cleared");
     };
   }, [chatId, socket, user]);
 
