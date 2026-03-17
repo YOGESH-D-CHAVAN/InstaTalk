@@ -11,7 +11,9 @@ import {
   ArrowRight,
   Star,
   Menu,
-  X
+  X,
+  Github,
+  Linkedin
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CreatorImg from '../assets/edu.jpg';
@@ -389,15 +391,39 @@ const LandingPage = () => {
               <p className="text-gray-400 text-lg mb-10 leading-relaxed">
                 As a developer passionate about real-time systems, I created InstaChat to bridge the gap between complex technology and simple, beautiful user experiences.
               </p>
-              <a 
-                href="https://yogeshchavan.in" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 font-bold rounded-2xl hover:bg-indigo-50 transition-all group shadow-sm hover:shadow-indigo-500/20"
-              >
-                View My Portfolio
-                <Globe className="w-5 h-5 text-indigo-600 group-hover:rotate-12 transition-transform" />
-              </a>
+              <div className="flex flex-wrap gap-4">
+                <a 
+                  href="https://yogeshchavan.in" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 font-bold rounded-2xl hover:bg-indigo-50 transition-all group shadow-sm hover:shadow-indigo-500/20"
+                >
+                  View My Portfolio
+                  <Globe className="w-5 h-5 text-indigo-600 group-hover:rotate-12 transition-transform" />
+                </a>
+                
+                <div className="flex gap-2">
+                  <a 
+                    href="https://github.com/YOGESH-D-CHAVAN" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="p-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all border border-white/10"
+                    title="GitHub"
+                  >
+                    <Github className="w-6 h-6" />
+                  </a>
+                  <a 
+                    href="https://www.linkedin.com/in/yogesh-chavan-494196316/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="p-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all border border-white/10"
+                    title="LinkedIn"
+                  >
+                    <Linkedin className="w-6 h-6" />
+                  </a>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
