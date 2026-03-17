@@ -18,10 +18,11 @@ router.post("/", protect, sendMessage);
 // get all messages of a chat
 router.get("/:chatId", protect, getMessages);
 
+// clear chat
+router.delete("/clear/:chatId", protect, clearChat);
+
 // delete message
 router.delete("/:messageId", protect, deleteMessage);
 
-// clear chat
-router.delete("/clear/:chatId", protect, clearChat);
 
 export default router;
