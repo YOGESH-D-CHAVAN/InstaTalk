@@ -14,6 +14,7 @@ import {
   X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import CreatorImg from '../assets/edu.jpg';
 
 const LandingPage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -362,7 +363,48 @@ const LandingPage = () => {
       </section>
 
 
+      <section id="creator" className="py-20 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto bg-gray-900 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row items-center">
+            <div className="md:w-1/2 p-1 relative">
+              <div className="aspect-square md:aspect-auto md:h-[500px] overflow-hidden rounded-[2.8rem]">
+                <img 
+                  src={CreatorImg} 
+                  alt="Yogesh Chavan" 
+                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700 scale-105 hover:scale-100"
+                />
+              </div>
+              <div className="absolute bottom-10 left-10 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl text-white">
+                <p className="text-xs uppercase tracking-widest font-bold opacity-70 mb-1">Founder & Developer</p>
+                <h4 className="text-xl font-bold">Yogesh Chavan</h4>
+              </div>
+            </div>
+            <div className="md:w-1/2 p-8 md:p-16 text-white">
+              <div className="inline-block p-3 bg-indigo-500/20 text-indigo-400 rounded-2xl mb-6">
+                 <Users className="w-8 h-8" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 italic leading-tight">
+                "I build tools that make communication feel <span className="text-indigo-400">effortless</span> and <span className="text-purple-400">natural</span>."
+              </h2>
+              <p className="text-gray-400 text-lg mb-10 leading-relaxed">
+                As a developer passionate about real-time systems, I created InstaChat to bridge the gap between complex technology and simple, beautiful user experiences.
+              </p>
+              <a 
+                href="https://yogeshchavan.in" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 font-bold rounded-2xl hover:bg-indigo-50 transition-all group shadow-sm hover:shadow-indigo-500/20"
+              >
+                View My Portfolio
+                <Globe className="w-5 h-5 text-indigo-600 group-hover:rotate-12 transition-transform" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="py-20 px-4 sm:px-6 lg:px-8">
+
         <div className="container mx-auto max-w-4xl">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 md:p-12 text-center text-white">
             <h2 className="text-3xl sm:text-4xl font-bold mb-6">
