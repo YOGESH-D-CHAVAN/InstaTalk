@@ -16,6 +16,7 @@ import {
   Linkedin
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import CreatorImg from '../assets/edu.jpg';
 
 const LandingPage = () => {
@@ -117,6 +118,11 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      <Helmet>
+        <title>Vajra Chat | Real-Time Messaging & Security</title>
+        <meta name="description" content="Experience Vajra Chat - the fastest and most secure way to connect with your community. Features include end-to-end encryption, rich media sharing, and real-time sync." />
+        <link rel="canonical" href="https://vajrachat.netlify.app/" />
+      </Helmet>
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

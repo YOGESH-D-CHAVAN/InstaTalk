@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -24,6 +25,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900 p-4">
+      <Helmet>
+        <title>Login | Vajra Chat - Connect Securely</title>
+        <meta name="description" content="Sign in to your Vajra Chat account to start messaging. Secure and encrypted communication at your fingertips." />
+      </Helmet>
       <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
         <h2 className="text-3xl font-extrabold text-center mb-2 text-gray-800">
           Welcome Back

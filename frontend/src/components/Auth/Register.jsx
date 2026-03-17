@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 export default function Register() {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
@@ -24,6 +25,10 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900 p-4">
+      <Helmet>
+        <title>Sign Up | Vajra Chat - Join the Secure Community</title>
+        <meta name="description" content="Create a new account on Vajra Chat. Start your journey with secure, real-time messaging today." />
+      </Helmet>
       <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
         <h2 className="text-3xl font-extrabold text-center mb-2 text-gray-800">
           Create Account

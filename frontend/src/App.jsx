@@ -37,17 +37,21 @@ function AppRoutes() {
 }
 
 import { SocketProvider } from "./context/SocketContext";
+import { HelmetProvider } from "react-helmet-async";
 
 function App() {
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </SocketProvider>
-    </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
+        <SocketProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </SocketProvider>
+      </AuthProvider>
+    </HelmetProvider>
   );
 }
+
 
 export default App;

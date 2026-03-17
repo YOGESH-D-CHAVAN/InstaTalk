@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /chat
+Disallow: /profile
+
+Sitemap: https://vajrachat.netlify.app/sitemap.xml
