@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import API from "../../services/api";
 import LinkImg from "../../assets/icons/link.png"
 import { useSocket } from "../../context/SocketContext";
-import { Image, FileText, X } from "lucide-react";
+import { Image, FileText, X, Trash2 } from "lucide-react";
 
 export default function ChatBox({ chatId, user }) {
   const { socket } = useSocket();
@@ -134,6 +134,9 @@ export default function ChatBox({ chatId, user }) {
     socket.on("receive_message", handleReceiveMessage);
     socket.on("typing", handleTyping);
     socket.on("stop_typing", handleStopTyping);
+    socket.on("message_deleted", ({ messageId }) => {
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    });
 
     return () => {
       socket.off("connect", handleJoinChat);
@@ -165,6 +168,19 @@ export default function ChatBox({ chatId, user }) {
         setMessages((prev) => [...prev, data]);
       } catch (err) {
         console.error("Failed to send message", err);
+      }
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (window.confirm("Are you sure you want to delete this message?")) {
+      try {
+        await API.delete(`/message/${messageId}`);
+        setMessages((prev) => prev.filter((m) => m._id !== messageId));
+        // Optional: socket emit for real-time deletion
+        socket.emit("delete_message", { chatId, messageId });
+      } catch (err) {
+        console.error("Failed to delete message", err);
       }
     }
   };
@@ -242,6 +258,15 @@ export default function ChatBox({ chatId, user }) {
                 )}
                 {m.content && <p>{m.content}</p>}
               </div>
+              {isMe && (
+                <button
+                  onClick={() => handleDeleteMessage(m._id)}
+                  className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all ml-1"
+                  title="Delete message"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           );
         })}

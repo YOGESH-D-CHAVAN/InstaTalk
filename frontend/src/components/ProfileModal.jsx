@@ -1,7 +1,43 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import API from '../services/api';
+import { Camera, Loader2 } from 'lucide-react';
 
 const ProfileModal = ({ user, onClose }) => {
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
     if (!user) return null;
+
+    const handleAvatarClick = () => {
+        if (fileInputRef.current) fileInputRef.current.click();
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            setIsUploading(true);
+            // 1. Upload file
+            const { data: uploadData } = await API.post("/upload", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            // 2. Update user profile
+            await API.patch("/user/profile", { avatar: uploadData.url });
+            
+            // Reload page or update context (simple reload for now)
+            window.location.reload(); 
+        } catch (error) {
+            console.error("Profile update failed", error);
+            alert("Failed to update profile picture");
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -17,7 +53,10 @@ const ProfileModal = ({ user, onClose }) => {
                 
                 <div className="px-8 pb-8">
                     <div className="relative -mt-16 mb-6 flex justify-center">
-                        <div className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg flex items-center justify-center overflow-hidden">
+                        <div 
+                            className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg flex items-center justify-center overflow-hidden relative group cursor-pointer"
+                            onClick={handleAvatarClick}
+                        >
                              {user?.avatar ? (
                                 <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
                              ) : (
@@ -25,7 +64,25 @@ const ProfileModal = ({ user, onClose }) => {
                                     {user.username?.[0]?.toUpperCase()}
                                 </div>
                              )}
+                             
+                             <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                {isUploading ? (
+                                    <Loader2 className="w-8 h-8 animate-spin" />
+                                ) : (
+                                    <>
+                                        <Camera className="w-6 h-6 mb-1" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Change</span>
+                                    </>
+                                )}
+                             </div>
                         </div>
+                        <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            onChange={handleFileChange} 
+                            className="hidden" 
+                            accept="image/*"
+                        />
                     </div>
                     
                     <div className="text-center mb-8">

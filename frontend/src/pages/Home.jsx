@@ -17,6 +17,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [chats, setChats] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   /* Restore full destructuring */
   const {
@@ -72,6 +73,33 @@ export default function Home() {
       fetchChats();
     } catch (error) {
       console.error("Error accessing chat:", error);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (window.confirm("Are you sure you want to clear this chat? This will delete all messages.")) {
+      try {
+        await API.delete(`/message/clear/${selectedChat._id}`);
+        // This will trigger a reload of messages in ChatBox if we pass a key or a trigger
+        // For now, let's just reload the selected chat or simple key change
+        setSelectedChat({ ...selectedChat }); 
+        setShowMenu(false);
+      } catch (error) {
+        console.error("Error clearing chat:", error);
+      }
+    }
+  };
+
+  const handleDeleteChat = async () => {
+    if (window.confirm("Are you sure you want to delete this chat entire chat?")) {
+      try {
+        await API.delete(`/chat/${selectedChat._id}`);
+        setSelectedChat(null);
+        fetchChats();
+        setShowMenu(false);
+      } catch (error) {
+        console.error("Error deleting chat:", error);
+      }
     }
   };
 
@@ -282,9 +310,36 @@ export default function Home() {
                     >
                       <Video size={20} />
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                      <MoreVertical size={20} />
-                    </button>
+                    <div className="relative">
+                      <button 
+                        onClick={() => setShowMenu(!showMenu)}
+                        className={`p-2 rounded-full transition-colors ${showMenu ? "bg-gray-100 text-gray-800" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"}`}
+                      >
+                        <MoreVertical size={20} />
+                      </button>
+                      
+                      {showMenu && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
+                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <button
+                              onClick={handleClearChat}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span>
+                              Clear Chat
+                            </button>
+                            <button
+                              onClick={handleDeleteChat}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            >
+                              <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                              Delete Chat
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 

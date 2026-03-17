@@ -38,3 +38,24 @@ export const fetchChats = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch chats", error: error.message });
   }
 };
+
+export const deleteChat = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    
+    const chat = await Chat.findById(chatId);
+    if (!chat || !chat.participants.includes(req.user._id)) {
+      return res.status(401).json({ message: "Unauthorized to delete this chat" });
+    }
+
+    await Chat.findByIdAndDelete(chatId);
+    // Also delete all messages associated with this chat
+    await import("../models/message.model.js").then(async (Message) => {
+       await Message.default.deleteMany({ chat: chatId });
+    });
+
+    res.status(200).json({ message: "Chat deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete chat", error: error.message });
+  }
+};
