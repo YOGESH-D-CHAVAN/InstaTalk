@@ -1,8 +1,22 @@
 import Chat from "../models/chat.model.js";
+import Connection from "../models/connection.model.js";
 
 export const accessChat = async (req, res) => {
   try {
     const { userId } = req.body;
+
+    // Check ifusers are connected
+    const connection = await Connection.findOne({
+      status: "accepted",
+      $or: [
+        { sender: req.user._id, receiver: userId },
+        { sender: userId, receiver: req.user._id },
+      ],
+    });
+
+    if (!connection) {
+      return res.status(403).json({ message: "You must be connected to this user to chat" });
+    }
 
     // check existing chat
     let chat = await Chat.findOne({

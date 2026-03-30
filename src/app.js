@@ -5,6 +5,7 @@ import chatRoutes from "./routes/chat.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 
 import userRoutes from "./routes/user.routes.js";
+import connectionRoutes from "./routes/connection.routes.js";
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
+app.use("/api/connection", connectionRoutes);
 app.use("/api", uploadRoutes);
 
 

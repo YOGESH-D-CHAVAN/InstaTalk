@@ -5,19 +5,22 @@ import { useSocket } from "../context/SocketContext";
 import ChatBox from "../components/Chat/ChatBox";
 import ProfileModal from "../components/ProfileModal";
 import CallInterface from "../components/Chat/CallInterface";
-import { Phone, Video, MoreVertical } from "lucide-react";
+import { Phone, Video, MoreVertical, UserPlus, Check, X, MessageSquare, Users } from "lucide-react";
+import connectionService from "../services/connectionService";
 
 import useWebRTC from "../hooks/useWebRTC";
 
 export default function Home() {
   const { user, logout } = useAuth();
-  const { onlineUsers } = useSocket();
+  const { socket, onlineUsers } = useSocket();
   const [users, setUsers] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [chats, setChats] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [activeTab, setActiveTab] = useState("chats"); // "chats" or "requests"
 
   /* Restore full destructuring */
   const {
@@ -41,11 +44,31 @@ export default function Home() {
 
   useEffect(() => {
     fetchChats();
+    fetchPendingRequests();
   }, [user]);
 
   useEffect(() => {
     if (searchTerm) fetchUsers();
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("connection_request_received", () => {
+      fetchPendingRequests();
+    });
+
+    socket.on("connection_request_accepted", () => {
+      fetchChats();
+      fetchPendingRequests();
+      if (searchTerm) fetchUsers();
+    });
+
+    return () => {
+      socket.off("connection_request_received");
+      socket.off("connection_request_accepted");
+    };
+  }, [socket, searchTerm]);
 
   const fetchChats = async () => {
     try {
@@ -62,6 +85,47 @@ export default function Home() {
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
+    }
+  };
+
+  const fetchPendingRequests = async () => {
+    try {
+      const data = await connectionService.getPendingRequests();
+      setPendingRequests(data);
+    } catch (error) {
+      console.error("Error fetching pending requests:", error);
+    }
+  };
+
+  const sendConnectionRequest = async (userId) => {
+    try {
+      await connectionService.sendRequest(userId);
+      socket.emit("send_connection_request", { to: userId });
+      fetchUsers(); // Refresh status in search
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to send request");
+    }
+  };
+
+  const acceptConnectionRequest = async (requestId, senderId) => {
+    try {
+      await connectionService.acceptRequest(requestId);
+      socket.emit("accept_connection_request", { to: senderId });
+      fetchPendingRequests();
+      fetchChats();
+      if (searchTerm) fetchUsers();
+    } catch (error) {
+      alert("Failed to accept request");
+    }
+  };
+
+  const rejectConnectionRequest = async (requestId) => {
+    try {
+      await connectionService.rejectRequest(requestId);
+      fetchPendingRequests();
+      if (searchTerm) fetchUsers();
+    } catch (error) {
+      alert("Failed to reject request");
     }
   };
 
@@ -201,65 +265,201 @@ export default function Home() {
           </div>
         </div>
 
-
         <div className="flex-1 overflow-y-auto space-y-1 p-3">
           {searchTerm ? (
-            users.map((u) => {
-              const isOnline = onlineUsers.some(id => String(id) === String(u._id));
-              return (
-                <div
-                  key={u._id}
-                  onClick={() => createChat(u._id)}
-                  className="p-3 flex items-center gap-3 cursor-pointer rounded-2xl hover:bg-blue-50 transition-all border border-transparent hover:border-blue-100"
-                >
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center font-semibold text-gray-600">
-                      {u.username[0].toUpperCase()}
+            <div className="space-y-1">
+              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Search Results</p>
+              {users.map((u) => {
+                const isOnline = onlineUsers.some(id => String(id) === String(u._id));
+                return (
+                  <div
+                    key={u._id}
+                    className="p-3 flex items-center justify-between gap-3 rounded-2xl hover:bg-blue-50 transition-all border border-transparent hover:border-blue-100"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center font-semibold text-gray-600">
+                          {u.username[0].toUpperCase()}
+                        </div>
+                        {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>}
+                      </div>
+                      <div className="truncate">
+                        <p className="font-bold text-sm text-gray-800 truncate">{u.username}</p>
+                        <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                      </div>
                     </div>
-                    {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>}
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm text-gray-800">{u.username}</p>
-                    <p className="text-xs text-gray-400 truncate">{u.email}</p>
-                  </div>
-                </div>
-              )
-            })
-          ) : (
-            chats.map((chat) => {
-              const currentUserId = user?._id || user?.id;
-              const otherUser = chat.participants.find(p => String(p._id) !== String(currentUserId)) || chat.participants[0];
-              const isSelected = selectedChat?._id === chat._id;
-              const isOnline = onlineUsers.some(id => String(id) === String(otherUser?._id));
-
-              return (
-                <div
-                  key={chat._id}
-                  onClick={() => openChat(chat)}
-                  className={`p-3 flex items-center gap-3 cursor-pointer rounded-2xl transition-all border ${isSelected
-                    ? "bg-blue-50 border-blue-100 shadow-sm"
-                    : "hover:bg-gray-50 border-transparent"
-                    }`}
-                >
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center font-bold text-blue-600 border border-gray-100 shadow-sm overflow-hidden">
-                      {otherUser?.avatar ? (
-                        <img src={otherUser.avatar} alt="avatar" className="w-full h-full object-cover" />
+                    
+                    <div className="flex-shrink-0">
+                      {u.connectionStatus === "accepted" ? (
+                        <button
+                          onClick={() => createChat(u._id)}
+                          className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                          title="Message"
+                        >
+                          <MessageSquare size={18} />
+                        </button>
+                      ) : u.connectionStatus === "pending_sent" ? (
+                        <span className="text-xs font-medium text-orange-500 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100">
+                          Pending
+                        </span>
+                      ) : u.connectionStatus === "pending_received" ? (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => acceptConnectionRequest(u.requestId, u._id)}
+                            className="p-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors shadow-sm"
+                            title="Accept"
+                          >
+                            <Check size={18} />
+                          </button>
+                          <button
+                            onClick={() => rejectConnectionRequest(u.requestId)}
+                            className="p-2 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-colors"
+                            title="Reject"
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
                       ) : (
-                        <span>{otherUser?.username?.[0]?.toUpperCase()}</span>
+                        <button
+                          onClick={() => sendConnectionRequest(u._id)}
+                          className="flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-xl hover:bg-blue-100 transition-all border border-blue-100"
+                        >
+                          <UserPlus size={16} />
+                          <span>Connect</span>
+                        </button>
                       )}
                     </div>
-                    {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full shadow-sm"></span>}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-bold text-sm ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
-                      {otherUser?.username}
-                    </p>
-                    <p className="text-xs text-gray-400 truncate">{isOnline ? 'Online' : 'Click to message'}</p>
-                  </div>
+                )
+              })}
+              {users.length === 0 && (
+                <div className="p-8 text-center text-gray-400">
+                  <p className="text-sm">No users found</p>
                 </div>
-              );
-            })
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Tabs for Sidebar */}
+              <div className="flex p-1 bg-gray-50 rounded-xl mb-4 mx-1">
+                <button
+                  onClick={() => setActiveTab("chats")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${
+                    activeTab === "chats" 
+                      ? "bg-white text-blue-600 shadow-sm" 
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <MessageSquare size={14} />
+                  Chats
+                </button>
+                <button
+                  onClick={() => setActiveTab("requests")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all relative ${
+                    activeTab === "requests" 
+                      ? "bg-white text-blue-600 shadow-sm" 
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <Users size={14} />
+                  Requests
+                  {pendingRequests.length > 0 && (
+                    <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  )}
+                </button>
+              </div>
+
+              {activeTab === "chats" ? (
+                chats.length > 0 ? (
+                  chats.map((chat) => {
+                    const currentUserId = user?._id || user?.id;
+                    const otherUser = chat.participants.find(p => String(p._id) !== String(currentUserId)) || chat.participants[0];
+                    const isSelected = selectedChat?._id === chat._id;
+                    const isOnline = onlineUsers.some(id => String(id) === String(otherUser?._id));
+
+                    return (
+                      <div
+                        key={chat._id}
+                        onClick={() => openChat(chat)}
+                        className={`p-3 flex items-center gap-3 cursor-pointer rounded-2xl transition-all border ${isSelected
+                          ? "bg-blue-50 border-blue-100 shadow-sm"
+                          : "hover:bg-gray-50 border-transparent"
+                          }`}
+                      >
+                        <div className="relative">
+                          <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center font-bold text-blue-600 border border-gray-100 shadow-sm overflow-hidden">
+                            {otherUser?.avatar ? (
+                              <img src={otherUser.avatar} alt="avatar" className="w-full h-full object-cover" />
+                            ) : (
+                              <span>{otherUser?.username?.[0]?.toUpperCase()}</span>
+                            )}
+                          </div>
+                          {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full shadow-sm"></span>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
+                            <p className={`font-bold text-sm ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
+                              {otherUser?.username}
+                            </p>
+                          </div>
+                          <p className="text-xs text-gray-400 truncate">{isOnline ? 'Online' : 'Click to message'}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-gray-400">
+                    <Users className="w-10 h-10 mb-2 opacity-20" />
+                    <p className="text-sm font-medium">No active chats</p>
+                    <p className="text-xs mt-1">Search for users and connect to start chatting.</p>
+                  </div>
+                )
+              ) : (
+                <div className="space-y-1">
+                  {pendingRequests.length > 0 ? (
+                    pendingRequests.map((req) => (
+                      <div
+                        key={req._id}
+                        className="p-3 flex items-center justify-between gap-3 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all"
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-600 text-sm">
+                            {req.sender.avatar ? (
+                              <img src={req.sender.avatar} alt="avatar" className="w-full h-full object-cover rounded-full" />
+                            ) : (
+                              req.sender.username[0].toUpperCase()
+                            )}
+                          </div>
+                          <div className="truncate">
+                            <p className="font-bold text-sm text-gray-800 truncate">{req.sender.username}</p>
+                            <p className="text-[10px] text-gray-400">wants to connect</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => acceptConnectionRequest(req._id, req.sender._id)}
+                            className="p-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button
+                            onClick={() => rejectConnectionRequest(req._id)}
+                            className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-8 text-center text-gray-400">
+                      <UserPlus className="w-10 h-10 mb-2 opacity-20" />
+                      <p className="text-sm font-medium">No pending requests</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

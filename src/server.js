@@ -96,6 +96,14 @@ io.on("connection", (socket) => {
     io.to(to).emit("call_ended"); 
   });
 
+  socket.on("send_connection_request", ({ to }) => {
+    io.to(String(to)).emit("connection_request_received");
+  });
+
+  socket.on("accept_connection_request", ({ to }) => {
+    io.to(String(to)).emit("connection_request_accepted");
+  });
+
   // End of WebRTC Signaling
 
   socket.on("disconnect", () => {
