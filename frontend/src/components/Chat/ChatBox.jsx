@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import API from "../../services/api";
 import LinkImg from "../../assets/icons/link.png"
 import { useSocket } from "../../context/SocketContext";
-import { Image, FileText, X, Trash2 } from "lucide-react";
+import { Image, FileText, X, Trash2, Sparkles } from "lucide-react";
+import aiService from "../../services/aiService";
 
 export default function ChatBox({ chatId, user }) {
   const { socket } = useSocket();
@@ -18,6 +19,7 @@ export default function ChatBox({ chatId, user }) {
   const [isUploading, setIsUploading] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [isEnhancing, setIsEnhancing] = useState(false);
 
   const uploadFile = async (file) => {
     const formData = new FormData();
@@ -156,6 +158,21 @@ export default function ChatBox({ chatId, user }) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]); // Scroll when typing starts too
+
+  const handleEnhanceAI = async () => {
+    if (!newMsg.trim() || isEnhancing) return;
+    try {
+      setIsEnhancing(true);
+      const enhanced = await aiService.enhanceMessage(newMsg);
+      setNewMsg(enhanced);
+    } catch (error) {
+      console.error("AI enhancement failed", error);
+      setUploadError("AI enhancement failed: " + error.message);
+      setTimeout(() => setUploadError(""), 5000);
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
 
   const sendMessage = async (e) => {
     if ((e.type === "click" || e.key === "Enter") && (newMsg.trim() || attachment)) {
@@ -320,15 +337,6 @@ export default function ChatBox({ chatId, user }) {
                   </div>
                   <span className="font-medium text-sm">Photos & Videos</span>
                 </button>
-                <button
-                  onClick={() => handleAttachmentOption("file")}
-                  className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors text-gray-700"
-                >
-                  <div className="p-2 bg-indigo-100 rounded-full text-indigo-600">
-                    <FileText size={20} />
-                  </div>
-                  <span className="font-medium text-sm">Document</span>
-                </button>
               </div>
             )}
 
@@ -353,10 +361,24 @@ export default function ChatBox({ chatId, user }) {
               value={newMsg}
               onChange={typingHandler}
               onKeyDown={(e) => e.key === "Enter" && sendMessage(e)}
-              className="w-full bg-gray-100 border-none text-gray-900 pl-10 pr-5 py-3 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400"
-              placeholder={isUploading ? "Uploading..." : "Type your message..."}
-              disabled={isUploading}
+              className="w-full bg-gray-100 border-none text-gray-900 pl-10 pr-12 py-3 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400"
+              placeholder={isUploading ? "Uploading..." : isEnhancing ? "AI is thinking..." : "Type your message..."}
+              disabled={isUploading || isEnhancing}
             />
+            {newMsg.trim() && (
+              <button
+                onClick={handleEnhanceAI}
+                disabled={isEnhancing}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-blue-500 hover:text-blue-700 disabled:text-gray-400 transition-all active:scale-90"
+                title="Enhance with AI"
+              >
+                {isEnhancing ? (
+                  <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+                ) : (
+                  <Sparkles size={20} className="drop-shadow-md" />
+                )}
+              </button>
+            )}
           </div>
         </div>
 
