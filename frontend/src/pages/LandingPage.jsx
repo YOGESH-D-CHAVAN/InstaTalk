@@ -371,7 +371,7 @@ const LandingPage = () => {
       </section>
 
 
-      <section id="creator" className="py-20 bg-white">
+      {/* <section id="creator" className="py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto bg-gray-900 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 p-1 relative">
@@ -433,7 +433,7 @@ const LandingPage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="py-20 px-4 sm:px-6 lg:px-8">
 
